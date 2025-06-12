@@ -1,19 +1,18 @@
 package br.com.feltex.desafioitau.transacao;
 
+import br.com.feltex.desafioitau.estatistica.EstatisticaDTO;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.stream.DoubleStream;
 
 @Repository
 public class TransacaoRepository {
 
-    private List<TransacaoRequest> transacoes = new ArrayList<>();
+    private final List<TransacaoRequest> transacoes = new ArrayList<>();
 
     public void add(TransacaoRequest transacaoRequest) {
         transacoes.add(transacaoRequest);
@@ -23,19 +22,20 @@ public class TransacaoRepository {
         transacoes.clear();
     }
 
-    public DoubleSummaryStatistics estatistica(OffsetDateTime horaInicial) {
+    public EstatisticaDTO estatistica(OffsetDateTime horaInicial) {
+        // Se estiver vazio retorna DTO padrão
         if (transacoes.isEmpty()) {
-            return new DoubleSummaryStatistics();
+            return new EstatisticaDTO();
         }
 
-        return transacoes.stream()
-                // filtra tudo >= horaInicial (after OU equal)
-                .filter(t -> t.getDataHora().isAfter(horaInicial)
-                        || t.getDataHora().equals(horaInicial))
-                // pega o BigDecimal do valor
+        // Calcula as estatísticas em double
+        DoubleSummaryStatistics stats = transacoes.stream()
+                .filter(t -> !t.getDataHora().isBefore(horaInicial))  // isAfter ou equal
                 .map(TransacaoRequest::getValor)
-                // converte pra double e já gera o resumo estatístico
                 .mapToDouble(BigDecimal::doubleValue)
                 .summaryStatistics();
+
+        // Constrói o DTO a partir das estatísticas
+        return new EstatisticaDTO(stats);
     }
 }
