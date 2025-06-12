@@ -17,12 +17,12 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @RestController
-@RequestMapping(value = "/transacao", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/transacao", produces = MediaType.APPLICATION_JSON_VALUE)
 @Slf4j
 public record TransacaoController(TransacaoRepository transacaoRepository) {
 
 
-    @PostMapping
+    @PostMapping (consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity adicionar(@RequestBody TransacaoRequest transacaoRequest) {
         log.info("Adicionar transacao");
 
@@ -38,12 +38,9 @@ public record TransacaoController(TransacaoRepository transacaoRepository) {
     }
 
     @DeleteMapping
-    public ResponseEntity limpar() {
-        log.info("Limpando Transacoes");
+    public ResponseEntity<Void> limpar() {
         transacaoRepository.limpar();
-        return ResponseEntity.status(HttpStatus.OK).build();
-
-
+        return ResponseEntity.noContent().build();  // 204
     }
 
     private void validarTransacao(TransacaoRequest transacaoRequest) {
